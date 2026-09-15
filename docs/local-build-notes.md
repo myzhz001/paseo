@@ -53,8 +53,10 @@ In `~/.paseo/config.json` under `agents.providers`:
   "extends": "claude",
   "label": "OpenRouter",
   "env": {
-    "ANTHROPIC_BASE_URL": "https://openrouter.ai/api/v1",
-    "ANTHROPIC_AUTH_TOKEN": "sk-or-v1-…"
+    "ANTHROPIC_BASE_URL": "https://openrouter.ai/api",
+    "ANTHROPIC_AUTH_TOKEN": "sk-or-v1-…",
+    "ANTHROPIC_CUSTOM_MODEL_OPTION": "deepseek/deepseek-v4-flash-0731",
+    "ANTHROPIC_CUSTOM_MODEL_OPTION_NAME": "DeepSeek V4 Flash 0731"
   }
 }
 ```
@@ -62,6 +64,15 @@ In `~/.paseo/config.json` under `agents.providers`:
 The token value is the machine's `OPENROUTER_API_KEY` (also in
 `~/.config/litellm/openrouter_key`). **Never commit the raw token.** After editing:
 `paseo daemon restart` (or relaunch the app).
+
+**Gotcha (root cause of repeated `404 model_not_found`):** the bundled Claude CLI
+appends `/v1/messages` to `ANTHROPIC_BASE_URL`. So the base must be
+`https://openrouter.ai/api` — using `https://openrouter.ai/api/v1` makes the CLI
+hit `…/api/v1/v1/messages`, which OpenRouter 404s. `ANTHROPIC_CUSTOM_MODEL_OPTION`
+registers the non-Anthropic id with the CLI (its `/model` picker + validation).
+
+Cost/behavior note: DeepSeek V4 Flash emits `thinking` blocks by default on the
+Anthropic-compat endpoint.
 
 Default model for the provider is set via `additionalModels` (isDefault: true):
 
@@ -75,8 +86,10 @@ Run an agent (uses the provider default — no `--model` needed):
 ```bash
 paseo agent run "your task" --provider openrouter --cwd <workdir> --wait-timeout 10m
 ```
-Verified: agent run completed via provider `openrouter` using default model
-`deepseek/deepseek-v4-flash-0731`; model replied over `https://openrouter.ai/api/v1` (HTTP 200).
+Verified: `paseo agent run "Reply with exactly the token: DEEPSEEK-DEFAULT-OK"
+--provider openrouter` (no `--model`) completed via provider `openrouter`;
+stored transcript shows model `deepseek/deepseek-v4-flash-0731` and the model's
+real reply `DEEPSEEK-DEFAULT-OK` over `https://openrouter.ai/api/v1/messages`.
 
 ## Daily use
 - `open /Applications/Paseo.app` — or double-click in Finder
