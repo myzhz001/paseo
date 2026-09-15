@@ -63,13 +63,20 @@ The token value is the machine's `OPENROUTER_API_KEY` (also in
 `~/.config/litellm/openrouter_key`). **Never commit the raw token.** After editing:
 `paseo daemon restart` (or relaunch the app).
 
-Run an agent through it:
-```bash
-paseo agent run "your task" --provider openrouter --model anthropic/claude-sonnet-4 \
-  --cwd <workdir> --wait-timeout 10m
+Default model for the provider is set via `additionalModels` (isDefault: true):
+
+```json
+"additionalModels": [
+  { "id": "deepseek/deepseek-v4-flash-0731", "label": "DeepSeek V4 Flash 0731", "isDefault": true }
+]
 ```
-Verified: agent run completed via provider `openrouter`; model replied over
-`https://openrouter.ai/api/v1` (HTTP 200).
+
+Run an agent (uses the provider default — no `--model` needed):
+```bash
+paseo agent run "your task" --provider openrouter --cwd <workdir> --wait-timeout 10m
+```
+Verified: agent run completed via provider `openrouter` using default model
+`deepseek/deepseek-v4-flash-0731`; model replied over `https://openrouter.ai/api/v1` (HTTP 200).
 
 ## Daily use
 - `open /Applications/Paseo.app` — or double-click in Finder
